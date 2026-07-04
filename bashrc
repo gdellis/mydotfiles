@@ -438,6 +438,30 @@ untiny() {
 # shellcheck source=/usr/share/bash-completion/bash_completion disable=SC1091
 . /etc/bash/bash_completion 2>/dev/null || . ~/.bash_completion 2>/dev/null
 
-path_clean
+ # ============================================================================
+ # SOURCE EXTERNAL FILES (Glenn's Changes)
+ # ============================================================================
 
+ # Source utility files
+ # shellcheck disable=SC1090
+ source_file() { test -f "$1" && . "$1"; }
+
+ source_file "${HOME}/.cargo/env"
+ source_file "${HOME}/.config/bash/.bash_functions"
+ source_file "${HOME}/.config/bash/.bash_aliases"
+
+ # Load environment-specific configurations
+ source_env_dir "${HOME}/.config/bash/env.d"
+
+# Source rust-mcp-stack env if it exists
+# shellcheck disable=SC1091
+if [[ -f "${HOME}/.rust-mcp-stack/bin/env" ]]; then
+. "${HOME}/.rust-mcp-stack/bin/env"
+fi
+
+# ============================================================================
+# End of file
+# ============================================================================
+
+path_clean
 true
