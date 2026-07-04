@@ -10,6 +10,7 @@
 [[ -n $PS1 ]] || return
 
 # Load bics, plugins found in bics-plugins
+# shellcheck source=/dev/null
 . ~/.bics/bics || echo '> failed to load bics' >&2
 
 # use vardump instead of parr
@@ -27,19 +28,32 @@ export TZ='America/New_York'
 export VISUAL='vim'
 
 # Support colors in less
-export LESS_TERMCAP_mb=$(tput bold; tput setaf 1)
-export LESS_TERMCAP_md=$(tput bold; tput setaf 1)
-export LESS_TERMCAP_me=$(tput sgr0)
-export LESS_TERMCAP_se=$(tput sgr0)
-export LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
-export LESS_TERMCAP_ue=$(tput sgr0)
-export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 2)
-export LESS_TERMCAP_mr=$(tput rev)
-export LESS_TERMCAP_mh=$(tput dim)
-export LESS_TERMCAP_ZN=$(tput ssubm)
-export LESS_TERMCAP_ZV=$(tput rsubm)
-export LESS_TERMCAP_ZO=$(tput ssupm)
-export LESS_TERMCAP_ZW=$(tput rsupm)
+LESS_TERMCAP_mb=$(tput bold; tput setaf 1)
+LESS_TERMCAP_md=$(tput bold; tput setaf 1)
+LESS_TERMCAP_me=$(tput sgr0)
+LESS_TERMCAP_se=$(tput sgr0)
+LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
+LESS_TERMCAP_ue=$(tput sgr0)
+LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 2)
+LESS_TERMCAP_mr=$(tput rev)
+LESS_TERMCAP_mh=$(tput dim)
+LESS_TERMCAP_ZN=$(tput ssubm)
+LESS_TERMCAP_ZV=$(tput rsubm)
+LESS_TERMCAP_ZO=$(tput ssupm)
+LESS_TERMCAP_ZW=$(tput rsupm)
+export LESS_TERMCAP_mb
+export LESS_TERMCAP_md
+export LESS_TERMCAP_me
+export LESS_TERMCAP_se
+export LESS_TERMCAP_so
+export LESS_TERMCAP_ue
+export LESS_TERMCAP_us
+export LESS_TERMCAP_mr
+export LESS_TERMCAP_mh
+export LESS_TERMCAP_ZN
+export LESS_TERMCAP_ZV
+export LESS_TERMCAP_ZO
+export LESS_TERMCAP_ZW
 
 # PATH
 path_add ~/bin before
@@ -221,10 +235,14 @@ fi
 
 # print a colorized diff
 colordiff() {
-	local red=$(tput setaf 1 2>/dev/null)
-	local green=$(tput setaf 2 2>/dev/null)
-	local cyan=$(tput setaf 6 2>/dev/null)
-	local reset=$(tput sgr0 2>/dev/null)
+	local red
+	local green
+	local cyan
+	local reset
+	red=$(tput setaf 1 2>/dev/null)
+	green=$(tput setaf 2 2>/dev/null)
+	cyan=$(tput setaf 6 2>/dev/null)
+	reset=$(tput sgr0 2>/dev/null)
 
 	diff -u "$@" | awk "
 	/^\-/ {
