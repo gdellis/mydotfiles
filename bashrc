@@ -121,19 +121,22 @@ gmb() { # git main branch
 
 # show the diff from inside a branch to the main branch
 gbd() { # git branch diff
-	local mb=$(gmb) || return 1
+	local mb
+	mb=$(gmb) || return 1
 	git diff "$mb..HEAD"
 }
 
 # checkout the main branch and update it
 gcm() { # git checkout $main
-	local mb=$(gmb) || return 1
+	local mb
+	mb=$(gmb) || return 1
 	git checkout "$mb" && git pull
 }
 
 # merge the main branch into our branch
 gmm() { # git merge $main
-	local mb=$(gmb) || return 1
+	local mb
+	mb=$(gmb) || return 1
 	git merge "$mb"
 }
 
@@ -159,13 +162,13 @@ set_prompt_colors() {
 	for i in {22..231}; do
 		((i % 30 == h)) || continue
 
-		color=${COLOR256[$i]}
+		color=${COLOR256[i]}
 		# cache the tput colors
 		if [[ -z $color ]]; then
-			COLOR256[$i]=$(tput setaf "$i")
-			color=${COLOR256[$i]}
+			COLOR256[i]=$(tput setaf "$i")
+			color=${COLOR256[i]}
 		fi
-		PROMPT_COLORS[$j]=$color
+		PROMPT_COLORS[j]=$color
 		((j++))
 	done
 }
@@ -174,6 +177,7 @@ set_prompt_colors() {
 # [(exit code)] <user> - <hostname> <uname> <cwd> [git branch] <$|#>
 
 # exit code of last process
+# shellcheck disable=SC2154
 PS1='$(ret=$?;(($ret!=0)) && echo "\[${COLOR256[0]}\]($ret) \[${COLOR256[256]}\]")'
 
 # username (red for root)
@@ -285,9 +289,11 @@ dump-palette() {
 	re='rgb:([0-9a-f]{4})\/([0-9a-f]{4})\/([0-9a-f]{4})'
 	for code in 4\;{0..15} 10 11 12 17 19; do
 		# query the terminal for palette info
+		# shellcheck disable=SC1003
 		printf '\e]%s;?\e\\' "$code" >&$fd
 
 		# read the response into a string (removing escape chars)
+		# shellcheck disable=SC1003
 		read -rs -d '\\' -u "$fd" s
 		s=${s//$'\e'}
 
@@ -322,9 +328,12 @@ gho() {
 	local remote=${2:-origin}
 
 	# get the git root dir, branch, and remote URL
-	local gr=$(git rev-parse --show-toplevel)
-	local branch=$(git rev-parse --abbrev-ref HEAD)
-	local url=$(git config --get "remote.$remote.url")
+	local gr
+	local branch
+	local url
+	gr=$(git rev-parse --show-toplevel)
+	branch=$(git rev-parse --abbrev-ref HEAD)
+	url=$(git config --get "remote.$remote.url")
 
 	[[ -n $gr && -n $branch && -n $remote ]] || return 1
 
@@ -334,7 +343,7 @@ gho() {
 
 	# extract the username and repo name
 	local a
-	IFS=:/ read -a a <<< "$url"
+	IFS=:/ read -ra a <<< "$url"
 	local len=${#a[@]}
 	local user=${a[len-2]}
 	local repo=${a[len-1]%.git}
@@ -420,12 +429,14 @@ untiny() {
 }
 
 # Load external files
+# shellcheck source=/dev/null
 . ~/.bash_aliases    2>/dev/null || true
+# shellcheck source=/dev/null
 . ~/.bashrc.local    2>/dev/null || true
 
 # load completion
-. /etc/bash/bash_completion 2>/dev/null ||
-	. ~/.bash_completion 2>/dev/null
+# shellcheck source=/usr/share/bash-completion/bash_completion disable=SC1091
+. /etc/bash/bash_completion 2>/dev/null || . ~/.bash_completion 2>/dev/null
 
 path_clean
 
