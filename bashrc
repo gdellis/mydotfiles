@@ -10,6 +10,7 @@
 [[ -n $PS1 ]] || return
 
 # Load bics, plugins found in bics-plugins
+# shellcheck source=/dev/null
 . ~/.bics/bics || echo '> failed to load bics' >&2
 
 # use vardump instead of parr
@@ -23,23 +24,36 @@ export HISTSIZE=5000
 export HISTFILESIZE=5000
 export LSCOLORS='ExGxbEaECxxEhEhBaDaCaD'
 export PAGER='less'
-export TZ='America/New_York'
+export TZ='America/Denver'
 export VISUAL='vim'
 
 # Support colors in less
-export LESS_TERMCAP_mb=$(tput bold; tput setaf 1)
-export LESS_TERMCAP_md=$(tput bold; tput setaf 1)
-export LESS_TERMCAP_me=$(tput sgr0)
-export LESS_TERMCAP_se=$(tput sgr0)
-export LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
-export LESS_TERMCAP_ue=$(tput sgr0)
-export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 2)
-export LESS_TERMCAP_mr=$(tput rev)
-export LESS_TERMCAP_mh=$(tput dim)
-export LESS_TERMCAP_ZN=$(tput ssubm)
-export LESS_TERMCAP_ZV=$(tput rsubm)
-export LESS_TERMCAP_ZO=$(tput ssupm)
-export LESS_TERMCAP_ZW=$(tput rsupm)
+LESS_TERMCAP_mb=$(tput bold; tput setaf 1)
+LESS_TERMCAP_md=$(tput bold; tput setaf 1)
+LESS_TERMCAP_me=$(tput sgr0)
+LESS_TERMCAP_se=$(tput sgr0)
+LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
+LESS_TERMCAP_ue=$(tput sgr0)
+LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 2)
+LESS_TERMCAP_mr=$(tput rev)
+LESS_TERMCAP_mh=$(tput dim)
+LESS_TERMCAP_ZN=$(tput ssubm)
+LESS_TERMCAP_ZV=$(tput rsubm)
+LESS_TERMCAP_ZO=$(tput ssupm)
+LESS_TERMCAP_ZW=$(tput rsupm)
+export LESS_TERMCAP_mb
+export LESS_TERMCAP_md
+export LESS_TERMCAP_me
+export LESS_TERMCAP_se
+export LESS_TERMCAP_so
+export LESS_TERMCAP_ue
+export LESS_TERMCAP_us
+export LESS_TERMCAP_mr
+export LESS_TERMCAP_mh
+export LESS_TERMCAP_ZN
+export LESS_TERMCAP_ZV
+export LESS_TERMCAP_ZO
+export LESS_TERMCAP_ZW
 
 # PATH
 path_add ~/bin before
@@ -107,19 +121,22 @@ gmb() { # git main branch
 
 # show the diff from inside a branch to the main branch
 gbd() { # git branch diff
-	local mb=$(gmb) || return 1
+	local mb
+	mb=$(gmb) || return 1
 	git diff "$mb..HEAD"
 }
 
 # checkout the main branch and update it
 gcm() { # git checkout $main
-	local mb=$(gmb) || return 1
+	local mb
+	mb=$(gmb) || return 1
 	git checkout "$mb" && git pull
 }
 
 # merge the main branch into our branch
 gmm() { # git merge $main
-	local mb=$(gmb) || return 1
+	local mb
+	mb=$(gmb) || return 1
 	git merge "$mb"
 }
 
@@ -145,13 +162,13 @@ set_prompt_colors() {
 	for i in {22..231}; do
 		((i % 30 == h)) || continue
 
-		color=${COLOR256[$i]}
+		color=${COLOR256[i]}
 		# cache the tput colors
 		if [[ -z $color ]]; then
-			COLOR256[$i]=$(tput setaf "$i")
-			color=${COLOR256[$i]}
+			COLOR256[i]=$(tput setaf "$i")
+			color=${COLOR256[i]}
 		fi
-		PROMPT_COLORS[$j]=$color
+		PROMPT_COLORS[j]=$color
 		((j++))
 	done
 }
@@ -160,6 +177,7 @@ set_prompt_colors() {
 # [(exit code)] <user> - <hostname> <uname> <cwd> [git branch] <$|#>
 
 # exit code of last process
+# shellcheck disable=SC2154
 PS1='$(ret=$?;(($ret!=0)) && echo "\[${COLOR256[0]}\]($ret) \[${COLOR256[256]}\]")'
 
 # username (red for root)
@@ -221,10 +239,14 @@ fi
 
 # print a colorized diff
 colordiff() {
-	local red=$(tput setaf 1 2>/dev/null)
-	local green=$(tput setaf 2 2>/dev/null)
-	local cyan=$(tput setaf 6 2>/dev/null)
-	local reset=$(tput sgr0 2>/dev/null)
+	local red
+	local green
+	local cyan
+	local reset
+	red=$(tput setaf 1 2>/dev/null)
+	green=$(tput setaf 2 2>/dev/null)
+	cyan=$(tput setaf 6 2>/dev/null)
+	reset=$(tput sgr0 2>/dev/null)
 
 	diff -u "$@" | awk "
 	/^\-/ {
@@ -267,9 +289,11 @@ dump-palette() {
 	re='rgb:([0-9a-f]{4})\/([0-9a-f]{4})\/([0-9a-f]{4})'
 	for code in 4\;{0..15} 10 11 12 17 19; do
 		# query the terminal for palette info
+		# shellcheck disable=SC1003
 		printf '\e]%s;?\e\\' "$code" >&$fd
 
 		# read the response into a string (removing escape chars)
+		# shellcheck disable=SC1003
 		read -rs -d '\\' -u "$fd" s
 		s=${s//$'\e'}
 
@@ -304,9 +328,12 @@ gho() {
 	local remote=${2:-origin}
 
 	# get the git root dir, branch, and remote URL
-	local gr=$(git rev-parse --show-toplevel)
-	local branch=$(git rev-parse --abbrev-ref HEAD)
-	local url=$(git config --get "remote.$remote.url")
+	local gr
+	local branch
+	local url
+	gr=$(git rev-parse --show-toplevel)
+	branch=$(git rev-parse --abbrev-ref HEAD)
+	url=$(git config --get "remote.$remote.url")
 
 	[[ -n $gr && -n $branch && -n $remote ]] || return 1
 
@@ -316,7 +343,7 @@ gho() {
 
 	# extract the username and repo name
 	local a
-	IFS=:/ read -a a <<< "$url"
+	IFS=:/ read -ra a <<< "$url"
 	local len=${#a[@]}
 	local user=${a[len-2]}
 	local repo=${a[len-1]%.git}
@@ -402,13 +429,39 @@ untiny() {
 }
 
 # Load external files
+# shellcheck source=/dev/null
 . ~/.bash_aliases    2>/dev/null || true
+# shellcheck source=/dev/null
 . ~/.bashrc.local    2>/dev/null || true
 
 # load completion
-. /etc/bash/bash_completion 2>/dev/null ||
-	. ~/.bash_completion 2>/dev/null
+# shellcheck source=/usr/share/bash-completion/bash_completion disable=SC1091
+. /etc/bash/bash_completion 2>/dev/null || . ~/.bash_completion 2>/dev/null
+
+ # ============================================================================
+ # SOURCE EXTERNAL FILES (Glenn's Changes)
+ # ============================================================================
+
+ # Source utility files
+ # shellcheck disable=SC1090
+ source_file() { test -f "$1" && . "$1"; }
+
+ source_file "${HOME}/.cargo/env"
+ source_file "${HOME}/.config/bash/.bash_functions"
+ source_file "${HOME}/.config/bash/.bash_aliases"
+
+ # Load environment-specific configurations
+ source_env_dir "${HOME}/.config/bash/env.d"
+
+# Source rust-mcp-stack env if it exists
+# shellcheck disable=SC1091
+if [[ -f "${HOME}/.rust-mcp-stack/bin/env" ]]; then
+. "${HOME}/.rust-mcp-stack/bin/env"
+fi
+
+# ============================================================================
+# End of file
+# ============================================================================
 
 path_clean
-
 true
