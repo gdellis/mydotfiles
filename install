@@ -7,8 +7,6 @@
 # Date: May 25, 2012
 # License: MIT
 
-command -v sudo &>/dev/null || alias sudo=''
-
 # makes "defaults" command print to screen
 defaults() {
 	echo defaults "$@"
