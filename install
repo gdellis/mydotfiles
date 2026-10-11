@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2088
 #
 # install all files to ~ by symlinking them,
 # this way, updating them is as simple as git pull
@@ -6,6 +7,10 @@
 # Author: Dave Eddy <dave@daveeddy.com>
 # Date: May 25, 2012
 # License: MIT
+
+trap EXIT true
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)   
 
 # makes "defaults" command print to screen
 defaults() {
@@ -72,4 +77,21 @@ else
 	echo "    vim +'PlugUpdate --sync' +qa"
 fi
 
-true
+# Install My (Glenn's) Custom changes
+MY_BASH_DIR="~/.config/bash"
+
+if [[ ! -d "MY_BASH_DIR" ]]; then
+	echo -e "bash_files (Glenn's additional file) is already installed at $MY_BASH_DIR"
+	printf "Do you want to overwrite it? [y|N]: "
+	read -r OVERWRITE
+	if [[ "${OVERWRITE,,}" = "y" ]]; then
+		TIMESTAMP=$(date +%Y%m%d%H%M)
+		BACKUP_DST="${SCRIPT_DIR}/.backup/bash_files_${TIMESTAMP}"
+		mv "$MY_BASH_DIR" "$BACKUP_DST"
+	else
+		exit 0
+	fi
+fi
+
+[[ -d ${MY_BASH_DIR} ]] || git clone https://github.com/gdellis/bash_files.git "$MY_BASH_DIR"
+

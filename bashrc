@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090,SC2034
 #
 # Best bashrc in history
 #
@@ -186,8 +187,10 @@ prompt-init() {
 	fi
 
 	# get host info only once
-	local zonename=$(zonename 2>/dev/null)
-	local uname=$(uname | tr '[:upper:]' '[:lower:]')
+	local zonename
+	zonename=$(zonename 2>/dev/null)
+	local uname
+	uname=$(uname | tr '[:upper:]' '[:lower:]')
 
 	# Construct the prompt:
 	# [(exit code)] <user> - <hostname> <uname> <cwd> [git branch] <$|#>
@@ -279,7 +282,7 @@ colordiff() {
 	cyan=$(tput setaf 6 2>/dev/null)
 	reset=$(tput sgr0 2>/dev/null)
 
-	diff -u "$@" | awk "
+	diff -u "$@" | awk '
 	/^\-/ {
 		printf(\"%s\", \"$red\");
 	}
@@ -326,6 +329,7 @@ dump-palette() {
 		printf '\e]%s;?\e\\' "$code" >&$fd
 
 		# read the response into a string (removing escape chars)
+		# shellcheck disable=SC1003
 		read -rs -d '\' -u "$fd" s
 		s=${s//$'\e'}
 
@@ -459,7 +463,6 @@ untiny() {
 }
 
 # Load external files
-. ~/.bash_aliases 2>/dev/null
 . ~/.bashrc.local 2>/dev/null
 
 # load completion
@@ -482,9 +485,7 @@ untiny() {
 
 # Source rust-mcp-stack env if it exists
 # shellcheck disable=SC1091
-if [[ -f "${HOME}/.rust-mcp-stack/bin/env" ]]; then
-. "${HOME}/.rust-mcp-stack/bin/env"
-fi
+source_file "${HOME}/.rust-mcp-stack/bin/env"
 
 # ============================================================================
 # End of file
